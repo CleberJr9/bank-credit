@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  CreatedAt DateTime @default(now())
+}
+
+model customer {
+  id       String   @id @default(uuid())
+  name     String
+  cpf      String   @unique
+  email    String   @unique
+  createAt DateTime @default(now())
+  cards    card[]
+}
+
+model card {
+  id                  String         @id @unique @default(uuid())
+  customerId          String
+  limitCents          Int
+  availableLimitCents Int
+  usedCents           Int            @default(0)
+  status              cardStatus
+  createAt            DateTime       @default(now())
+  customer            customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  transactions        transactions[]
+
+  @@index([customerId])
+}
+
+enum cardStatus {
+  BLOCKED
+  ACTIVE
+}
+
+enum statusTransaction {
+  APPROVED
+  DECLINED
+  REFUNDED
+}
+
+model transactions {
+  id                    String            @id @default(uuid())
+  cardId                String
+  amountCents           Int
+  merchant              String
+  declineReason         String?
+  idempotencyKey        String            @unique
+  status                statusTransaction
+  createdAt             DateTime          @default(now())
+  card                  card              @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  refundDate            DateTime?
+  originalTransactionId String?
+  type                  transactionType   @default(PAYMENT)
+
+  @@unique([cardId, idempotencyKey])
+  @@index([cardId])
+  @@index([originalTransactionId])
+}
+
+enum transactionType {
+  PAYMENT
+  REVERSAL
+}
