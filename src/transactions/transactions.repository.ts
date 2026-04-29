@@ -20,7 +20,6 @@ export class transactionRepository {
   }
 
   async refundTransaction(originalTransaction: transactions) {
-    
     const existingRefund = await this.getTransactionReversal(
       originalTransaction.id,
     );
@@ -29,9 +28,7 @@ export class transactionRepository {
       return existingRefund;
     }
 
-
     return this.prismaService.prisma.$transaction(async (tx) => {
-      
       const refund = await tx.transactions.create({
         data: {
           cardId: originalTransaction.cardId,

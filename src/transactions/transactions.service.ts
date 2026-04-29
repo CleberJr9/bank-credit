@@ -7,13 +7,10 @@ import { transactionRepository } from './transactions.repository';
 
 @Injectable()
 export class TransactionsService {
-  constructor(
-    private readonly transactionRepository: transactionRepository,
-  ) {}
+  constructor(private readonly transactionRepository: transactionRepository) {}
 
   async refundTransaction(id: string) {
-    const transaction =
-      await this.transactionRepository.transactionsById(id);
+    const transaction = await this.transactionRepository.transactionsById(id);
 
     // 404
     if (!transaction) {
